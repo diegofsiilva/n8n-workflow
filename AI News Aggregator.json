@@ -11,12 +11,12 @@
           ]
         }
       },
-      "id": "6260467e-68c2-441e-b370-d2ee54cc0416",
+      "id": "6a5d0888-211c-4d00-909a-474ada6ac943",
       "name": "Weekly Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        6272,
-        1808
+        10768,
+        2512
       ],
       "typeVersion": 1.3
     },
@@ -25,12 +25,12 @@
         "url": "https://techcrunch.com/feed/",
         "options": {}
       },
-      "id": "a9c77853-c618-4108-aaa0-08554eb86a77",
+      "id": "fbb2141e-5382-4453-8fff-878329efa373",
       "name": "TechCrunch",
       "type": "n8n-nodes-base.rssFeedRead",
       "position": [
-        6464,
-        1680
+        10960,
+        2384
       ],
       "typeVersion": 1.2
     },
@@ -39,12 +39,12 @@
         "url": "https://venturebeat.com/category/ai/feed/",
         "options": {}
       },
-      "id": "53442fe0-a80d-4edf-87c0-36a98a595d48",
+      "id": "ec77f07c-cc17-410b-874f-9842466baa8e",
       "name": "VentureBeat",
       "type": "n8n-nodes-base.rssFeedRead",
       "position": [
-        6464,
-        1808
+        10960,
+        2512
       ],
       "typeVersion": 1.2
     },
@@ -53,12 +53,12 @@
         "url": "https://www.technologyreview.com/feed/",
         "options": {}
       },
-      "id": "04628a4d-c43a-4e29-ad62-af01c480b542",
+      "id": "97a3933d-8e77-4253-ab02-2e8ea80b2154",
       "name": "MIT",
       "type": "n8n-nodes-base.rssFeedRead",
       "position": [
-        6464,
-        1936
+        10960,
+        2640
       ],
       "typeVersion": 1.2
     },
@@ -66,68 +66,82 @@
       "parameters": {
         "numberInputs": 3
       },
-      "id": "5328726d-ae22-4c93-a67f-5d3858fb6a45",
+      "id": "c1afbd88-8d3b-4ca4-99fb-17b42ea3501e",
       "name": "Merge Feeds",
       "type": "n8n-nodes-base.merge",
       "position": [
-        6672,
-        1808
+        11168,
+        2512
       ],
       "typeVersion": 3.2
     },
     {
       "parameters": {
-        "jsCode": "const seen = new Set();\nconst output = [];\n\nfor (const item of $input.all()) {\n  if (!item || !item.json) continue;\n\n  const json = item.json;\n\n  const key =\n    json.link ||\n    json.url ||\n    json.guid ||\n    json.id ||\n    json.title;\n\n  if (!key) continue;\n\n  const safeKey = String(key);\n\n  if (seen.has(safeKey)) continue;\n\n  seen.add(safeKey);\n\n  output.push({ json });\n}\n\nreturn output;"
+        "jsCode": "const seen = new Set();\nconst output = [];\n\nfor (const item of $input.all()) {\n  if (!item || !item.json) continue;\n  const json = item.json;\n  const key = json.link || json.url || json.guid || json.id || json.title;\n  if (!key) continue;\n  const safeKey = String(key);\n  if (seen.has(safeKey)) continue;\n  seen.add(safeKey);\n  output.push({ json });\n}\n\nreturn output;"
       },
-      "id": "11b2f690-de77-4dfd-b558-d7cd8cdde1d0",
+      "id": "f530fbc0-f789-4e61-aadc-325e217cf1f3",
       "name": "Remove Duplicates",
       "type": "n8n-nodes-base.code",
       "position": [
-        6864,
-        1808
+        11360,
+        2512
       ],
       "typeVersion": 2
     },
     {
       "parameters": {
-        "jsCode": "const seen = new Set();\nconst output = [];\n\nfor (const item of $input.all()) {\n  if (!item || !item.json) continue;\n\n  const json = item.json;\n\n  const key =\n    json.link ||\n    json.url ||\n    json.guid ||\n    json.id ||\n    json.title;\n\n  if (!key) continue;\n\n  const safeKey = String(key);\n\n  if (seen.has(safeKey)) continue;\n\n  seen.add(safeKey);\n\n  output.push({ json });\n}\n\nreturn output;"
+        "jsCode": "// Filter: keep only items with a title and link\nconst output = [];\n\nfor (const item of $input.all()) {\n  if (!item || !item.json) continue;\n  const j = item.json;\n  if (!j.title) continue;\n  output.push({ json: j });\n}\n\nreturn output;"
       },
-      "id": "2326ac4c-c175-40f1-8c84-d5345c7502de",
+      "id": "7a02df55-b5a5-4d2c-b0a8-554ad736b5d0",
       "name": "Filter",
       "type": "n8n-nodes-base.code",
       "position": [
-        7072,
-        1808
+        11568,
+        2512
       ],
       "typeVersion": 2
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all() || [];\n\nconst articles = [];\nlet count = 0;\n\nfor (const item of items) {\n\n  if (!item || !item.json) continue;\n\n  const j = item.json;\n\n  const title = (j.title || 'Sem título').toString();\n  const link = (j.link || j.url || '').toString();\n\n  articles.push({\n    title,\n    link\n  });\n\n  count++;\n}\n\nif (articles.length === 0) {\n  articles.push({\n    title: 'Nenhuma notícia encontrada',\n    link: ''\n  });\n}\n\nconst prompt =\n`Você é um analista de IA.\n\nAnalise as seguintes notícias da semana:\n\n${articles.map((a, i) => `${i + 1}. ${a.title}`).join('\\n')}\n\nGere um relatório com:\n- Destaques\n- Tendências\n- Oportunidades\n- Resumo executivo\n\nSeja direto e profissional.`;\n\nreturn [\n  {\n    json: {\n      total: count,\n      articles,\n      prompt\n    }\n  }\n];"
+        "jsCode": "// Aggregate: build article list and GPT prompt (max 30 articles)\nconst items = $input.all() || [];\nconst articles = [];\n\nfor (const item of items) {\n  if (!item || !item.json) continue;\n  const j = item.json;\n  if (!j.title) continue;\n  articles.push({\n    title: String(j.title || 'Sem título').slice(0, 120),\n    link:  String(j.link || j.url || '')\n  });\n  if (articles.length >= 30) break;\n}\n\nif (articles.length === 0) {\n  articles.push({ title: 'Nenhuma notícia encontrada', link: '' });\n}\n\nconst numberedList = articles\n  .map((a, i) => (i + 1) + \". \" + a.title)\n  .join(\"\\n\");\n\nconst prompt = `Você é um analista de Inteligência Artificial do Inteli Academy.\n\nAnalise as seguintes notícias coletadas esta semana:\n\n${numberedList}\n\nGere um relatório em português com estas 4 seções (use ## antes de cada título):\n\n## Destaques da Semana\nAs 3 a 5 notícias mais relevantes com um comentário breve de cada.\n\n## Tendências Identificadas\n3 padrões ou movimentos observados no conjunto de notícias.\n\n## Oportunidades\n2 oportunidades para startups ou projetos que emergem dessas notícias.\n\n## Resumo Executivo\nUm parágrafo sintetizando o estado da IA esta semana.`;\n\nreturn [{\n  json: {\n    total: articles.length,\n    articles,\n    prompt\n  }\n}];"
       },
-      "id": "03e16b1d-caff-4aa2-9f46-56a6ace5e340",
+      "id": "5abc528a-56e8-4aa8-9909-bd09d50ce763",
       "name": "Aggregate",
       "type": "n8n-nodes-base.code",
       "position": [
-        7264,
-        1808
+        11760,
+        2512
       ],
       "typeVersion": 2
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "__CUSTOM_API_CALL__",
-        "requestOptions": {}
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"max_tokens\": 1500,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Voce e um analista de Inteligencia Artificial do Inteli Academy. Responda sempre em portugues, de forma clara e profissional.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {}
       },
-      "id": "b5cc4f88-3501-446d-a3d7-d74a09da12c8",
+      "id": "00237c08-82f3-4c3d-8869-d269cb6ecb1f",
       "name": "Call GPT",
-      "type": "n8n-nodes-base.openAi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
-        7472,
-        1808
+        12176,
+        2512
       ],
-      "typeVersion": 1.1,
+      "typeVersion": 4.2,
       "credentials": {
         "openAiApi": {
           "id": "4nqk8HgEchqo2OH8",
@@ -137,27 +151,27 @@
     },
     {
       "parameters": {
-        "jsCode": "let aggData = {};\nlet gptText = 'Relatório não gerado.';\n\n// 🔒 PEGAR DADOS DO AGGREGATE COM SEGURANÇA\ntry {\n  const node = $('Aggregate').first();\n  if (node && node.json) {\n    aggData = node.json;\n  }\n} catch (e) {\n  aggData = {};\n}\n\n\nconst gpt = $input.first()?.json || {};\n\nif (gpt?.choices?.[0]?.message?.content) {\n  gptText = gpt.choices[0].message.content;\n}\n// fallback (às vezes vem assim)\nelse if (gpt?.message?.content) {\n  gptText = gpt.message.content;\n}\n// fallback bruto\nelse if (gpt?.text) {\n  gptText = gpt.text;\n}\n// fallback final\nelse {\n  gptText = JSON.stringify(gpt).slice(0, 500);\n}\n\nreturn [\n  {\n    json: {\n      total: aggData.total || 0,\n      articles: aggData.articles || [],\n      gptReport: gptText\n    }\n  }\n];"
+        "jsCode": "// Merge GPT: extract GPT text and join with article data from Aggregate\nconst gptJson = $input.first()?.json || {};\n\n// Extract the report text from the OpenAI response\nlet gptReport = '';\nif (gptJson?.choices?.[0]?.message?.content) {\n  gptReport = gptJson.choices[0].message.content;\n} else if (gptJson?.message?.content) {\n  gptReport = gptJson.message.content;\n} else if (typeof gptJson?.text === 'string') {\n  gptReport = gptJson.text;\n} else {\n  gptReport = JSON.stringify(gptJson).slice(0, 800);\n}\n\n// Pull the article list and total from the Aggregate node\nlet articles = [];\nlet total = 0;\ntry {\n  const agg = $('Aggregate').first()?.json || {};\n  articles = agg.articles || [];\n  total    = agg.total    || 0;\n} catch(e) {}\n\nreturn [{\n  json: { gptReport, articles, total }\n}];"
       },
-      "id": "78bbf38d-2256-43e5-8f34-76ce8da87447",
+      "id": "f197e5c1-9c7f-4049-a4f4-37dbae504f4a",
       "name": "Merge GPT",
       "type": "n8n-nodes-base.code",
       "position": [
-        7664,
-        1808
+        12368,
+        2512
       ],
       "typeVersion": 2
     },
     {
       "parameters": {
-        "jsCode": "const httpResponse = $input.first()?.json || {};\nconst gptReport = httpResponse?.choices?.[0]?.message?.content || 'Relatorio nao gerado.';\n\n// SAFE GET do node anterior\nconst aggregatedNode = $('Build GPT Prompt').first();\nconst aggregated = aggregatedNode ? aggregatedNode.json : {};\n\nconst stats = aggregated?.stats || [];\nconst total = aggregated?.total || 0;\nconst articles = aggregated?.articles || [];\n\n// TOP STAT SAFE\nconst topStat = (stats && stats.length > 0) ? stats[0] : null;\n\n// TABLE\nconst statsRows = stats.map(s =>\n  '<tr><td>' + (s.category || '-') + '</td><td>' + (s.count || 0) + '</td><td>' + (s.percentage || 0) + '%</td></tr>'\n).join('');\n\n// GROUP BY CATEGORY\nconst byCategory = {};\narticles.forEach(a => {\n  const cat = a.category || 'General AI';\n  if (!byCategory[cat]) byCategory[cat] = [];\n  byCategory[cat].push(a);\n});\n\n// ARTICLES HTML\nconst articleSections = Object.entries(byCategory).map(([cat, arts]) => {\n  const artList = arts.map(a =>\n    '<li><a href=\"' + (a.link || '#') + '\" target=\"_blank\">' + (a.title || 'Sem titulo') + '</a><br><small>' + (a.summary || '') + '</small></li>'\n  ).join('');\n  return '<h3>' + cat + '</h3><ul>' + artList + '</ul>';\n}).join('');\n\n// REPORT FORMAT\nconst reportHtml = (gptReport || '')\n  .replace(/## (.+)/g, '<h2>$1</h2>')\n  .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')\n  .replace(/\\n\\n/g, '</p><p>')\n  .replace(/\\n/g, '<br>');\n\n// DATE\nconst weekDate = new Date().toLocaleDateString('pt-BR', {\n  day: '2-digit',\n  month: 'long',\n  year: 'numeric'\n});\n\n// HTML (APENAS CSS ALTERADO)\nconst html = '<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"><title>Inteli Academy - AI News | ' + weekDate + '</title><style>body{font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:20px;color:#1a1a1a;background:#ffffff}header{border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:20px}h1{font-size:24px;margin:0}.subtitle{color:#555;font-size:14px}.summary-box{background:#000;color:#fff;padding:16px;margin-bottom:24px}.summary-box h2{margin:0 0 10px 0;font-size:12px;text-transform:uppercase}.stat{margin-bottom:8px}.stat-number{font-size:20px;font-weight:bold}.stat-label{font-size:12px}table{width:100%;border-collapse:collapse;margin-bottom:24px}th{text-align:left;border-bottom:2px solid #000;padding:8px 0;font-size:12px}td{padding:8px 0;border-bottom:1px solid #ddd}h2{font-size:18px;margin:24px 0 10px 0}h3{font-size:14px;margin:16px 0 6px 0}p{line-height:1.6}ul{padding-left:18px}li{margin-bottom:10px}a{color:#000;text-decoration:underline}small{color:#777;font-size:12px}footer{border-top:1px solid #ddd;margin-top:30px;padding-top:10px;font-size:12px;color:#777}</style></head><body>'\n  + '<header><h1>Inteli Academy - AI News</h1><p class=\"subtitle\">Relatorio semanal de Inteligencia Artificial | ' + weekDate + '</p></header>'\n  + '<div class=\"summary-box\"><h2>Resumo da Semana</h2><div class=\"stats-grid\">'\n  + '<div class=\"stat\"><span class=\"stat-number\">' + total + '</span><span class=\"stat-label\">Noticias</span></div>'\n  + '<div class=\"stat\"><span class=\"stat-number\">' + stats.length + '</span><span class=\"stat-label\">Categorias</span></div>'\n  + '<div class=\"stat\"><span class=\"stat-number\">' + (topStat ? topStat.percentage + '%' : '0%') + '</span><span class=\"stat-label\">' + (topStat ? topStat.category : '-') + '</span></div>'\n  + '</div></div>'\n  + '<h2>Distribuicao por Categoria</h2><table><thead><tr><th>Categoria</th><th>Noticias</th><th>Percentual</th></tr></thead><tbody>' + statsRows + '</tbody></table>'\n  + '<p>' + reportHtml + '</p>'\n  + '<h2>Todas as Noticias da Semana</h2>' + (articleSections || '<p>Nenhuma noticia encontrada</p>')\n  + '<footer><p>Inteli Academy - Clube de IA do Inteli | Gerado automaticamente via n8n + GPT-4o | ' + weekDate + '</p></footer>'\n  + '</body></html>';\n\nreturn [{\n  json: {\n    html,\n    subject: 'Inteli Academy - AI News | ' + weekDate + ' | ' + total + ' noticias',\n    report: gptReport,\n    total,\n    stats\n  }\n}];"
+        "jsCode": "const input = $input.first()?.json || {};\n\nconst gptReport = (input.gptReport || '').trim() || 'Relatorio nao gerado.';\nconst total     = input.total    || 0;\nconst articles  = input.articles || [];\n\nconst weekDate = new Date().toLocaleDateString('pt-BR', {\n  day: '2-digit', month: 'long', year: 'numeric'\n});\n\n// ── Convert markdown-ish GPT output to HTML ──────────────────────────────────\nfunction mdToHtml(text) {\n  const lines = text.split('\\n');\n  let html = '';\n  let inList = false;\n\n  for (let raw of lines) {\n    const line = raw.trim();\n\n    // Section headings  ## Foo\n    if (line.startsWith('## ')) {\n      if (inList) { html += '</ul>'; inList = false; }\n      html += '<h2 class=\"rh2\">' + esc(line.slice(3)) + '</h2>';\n      continue;\n    }\n\n    // Sub-headings  ### Foo\n    if (line.startsWith('### ')) {\n      if (inList) { html += '</ul>'; inList = false; }\n      html += '<h3 class=\"rh3\">' + esc(line.slice(4)) + '</h3>';\n      continue;\n    }\n\n    // Bullet points  - Foo  or  * Foo\n    if (/^[-*]\\s/.test(line)) {\n      if (!inList) { html += '<ul class=\"rlist\">'; inList = true; }\n      html += '<li>' + inline(line.slice(2)) + '</li>';\n      continue;\n    }\n\n    // Numbered list  1. Foo\n    if (/^\\d+\\.\\s/.test(line)) {\n      if (!inList) { html += '<ul class=\"rlist\">'; inList = true; }\n      html += '<li>' + inline(line.replace(/^\\d+\\.\\s/, '')) + '</li>';\n      continue;\n    }\n\n    // Empty line → paragraph break\n    if (line === '') {\n      if (inList) { html += '</ul>'; inList = false; }\n      html += '<br>';\n      continue;\n    }\n\n    // Normal paragraph line\n    if (inList) { html += '</ul>'; inList = false; }\n    html += '<p class=\"rp\">' + inline(line) + '</p>';\n  }\n\n  if (inList) html += '</ul>';\n  return html;\n}\n\nfunction esc(s) {\n  return String(s)\n    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\n}\n\nfunction inline(s) {\n  return esc(s)\n    .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')\n    .replace(/\\*(.+?)\\*/g, '<em>$1</em>')\n    .replace(/`(.+?)`/g, '<code>$1</code>');\n}\n// ─────────────────────────────────────────────────────────────────────────────\n\nconst reportHtml  = mdToHtml(gptReport);\n\nconst articlesHtml = articles.length > 0\n  ? articles.map((a, i) =>\n      '<div class=\"ai\">' +\n        '<span class=\"an\">' + String(i + 1).padStart(2, '0') + '</span>' +\n        (a.link\n          ? '<a class=\"at\" href=\"' + a.link + '\" target=\"_blank\">' + esc(a.title) + '</a>'\n          : '<span class=\"at\">' + esc(a.title) + '</span>') +\n      '</div>'\n    ).join('')\n  : '<p class=\"empty\">Nenhuma noticia encontrada.</p>';\n\nconst html = `<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>Inteli Academy - AI News | ${weekDate}</title>\n<style>\n*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}\nbody{font-family:Arial,Helvetica,sans-serif;background:#f5f5f0;color:#1a1a1a;line-height:1.6;padding:32px 16px}\n.wrap{max-width:680px;margin:0 auto;background:#fff;border:1px solid #e0e0d8}\n\n/* header */\n.hd{padding:32px 40px 24px;border-bottom:3px solid #1a1a1a}\n.ht{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px}\n.brand{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:6px}\n.headline{font-size:28px;font-weight:700;line-height:1.1}\n.dtag{font-size:11px;color:#fff;background:#1a1a1a;padding:4px 10px;white-space:nowrap;align-self:flex-start;margin-top:4px}\n\n/* stats */\n.ss{display:flex;border-bottom:1px solid #e0e0d8}\n.sb{flex:1;padding:20px 40px;border-right:1px solid #e0e0d8}\n.sb:last-child{border-right:none}\n.sn{font-size:36px;font-weight:700;line-height:1}\n.sl{font-size:11px;color:#888;text-transform:uppercase;margin-top:4px}\n\n/* body */\n.bd{padding:32px 40px}\n.sec{margin-bottom:40px}\n.slabel{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #e0e0d8}\n\n/* report */\n.rp{font-size:14px;line-height:1.75;color:#333;margin-bottom:10px}\n.rh2{font-size:16px;font-weight:700;margin:24px 0 8px;color:#1a1a1a}\n.rh3{font-size:14px;font-weight:600;margin:16px 0 6px;color:#333}\n.rlist{list-style:none;padding:0;margin:6px 0 12px}\n.rlist li{font-size:14px;color:#333;padding:6px 0 6px 14px;border-left:2px solid #1a1a1a;margin-bottom:6px;line-height:1.55}\n.rlist li strong{color:#1a1a1a}\n\n/* articles */\n.ai{display:flex;align-items:baseline;gap:14px;padding:12px 0;border-bottom:1px solid #f0f0e8}\n.ai:last-child{border-bottom:none}\n.an{font-size:11px;color:#bbb;min-width:22px;flex-shrink:0}\n.at{font-size:13px;color:#1a1a1a;text-decoration:none;font-weight:500;line-height:1.45}\n.at:hover{text-decoration:underline}\n.empty{font-size:13px;color:#888;font-style:italic}\n\n/* footer */\n.ft{border-top:3px solid #1a1a1a;padding:20px 40px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}\n.fb{font-size:12px;font-weight:600}\n.fm{font-size:11px;color:#888}\n\n@media(max-width:600px){\n  .hd,.bd,.ft{padding-left:20px;padding-right:20px}\n  .ss{flex-direction:column}\n  .sb{border-right:none;border-bottom:1px solid #e0e0d8}\n  .sb:last-child{border-bottom:none}\n}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n\n  <div class=\"hd\">\n    <div class=\"ht\">\n      <div>\n        <div class=\"brand\">Inteli Academy — AI Newsletter</div>\n        <div class=\"headline\">AI News<br>Weekly</div>\n      </div>\n      <div class=\"dtag\">${weekDate}</div>\n    </div>\n  </div>\n\n  <div class=\"ss\">\n    <div class=\"sb\"><div class=\"sn\">${total}</div><div class=\"sl\">Noticias</div></div>\n    <div class=\"sb\"><div class=\"sn\">3</div><div class=\"sl\">Fontes</div></div>\n    <div class=\"sb\"><div class=\"sn\">GPT</div><div class=\"sl\">Analisado por</div></div>\n  </div>\n\n  <div class=\"bd\">\n\n    <div class=\"sec\">\n      <div class=\"slabel\">Analise semanal</div>\n      <div class=\"report-wrap\">${reportHtml}</div>\n    </div>\n\n    <div class=\"sec\">\n      <div class=\"slabel\">Todas as noticias — ${total} itens</div>\n      ${articlesHtml}\n    </div>\n\n  </div>\n\n  <div class=\"ft\">\n    <div class=\"fb\">Inteli Academy</div>\n    <div class=\"fm\">Gerado via n8n + GPT-4o</div>\n  </div>\n\n</div>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    html,\n    subject: 'Inteli Academy - AI News | ' + weekDate + ' | ' + total + ' noticias',\n    report: gptReport,\n    total\n  }\n}];"
       },
-      "id": "5b3f3a1c-e0ca-40ec-8173-953a7d428407",
+      "id": "74ddd4ce-3628-43a1-bf2d-1b035c75b859",
       "name": "Format HTML",
       "type": "n8n-nodes-base.code",
       "position": [
-        7872,
-        1808
+        12576,
+        2512
       ],
       "typeVersion": 2
     },
@@ -169,15 +183,27 @@
         "html": "={{ $json.html }}",
         "options": {}
       },
-      "id": "6db85abe-3452-4ea3-b5bc-0d8df77ab5c9",
+      "id": "09d2c9af-da47-4065-a946-c74d83e6a453",
       "name": "Send Email",
       "type": "n8n-nodes-base.emailSend",
       "position": [
-        8064,
-        1808
+        12768,
+        2512
       ],
       "typeVersion": 2.1,
       "webhookId": "9a76a8ac-3fcd-4890-b859-063738162f09"
+    },
+    {
+      "parameters": {},
+      "id": "2653cd23-6c96-4ecc-b3fa-137852dd85f4",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        11872,
+        2512
+      ],
+      "typeVersion": 1.1,
+      "webhookId": "5e841f10-df0d-4e6c-baac-ae561be1d94f"
     }
   ],
   "connections": {
@@ -272,7 +298,7 @@
       "main": [
         [
           {
-            "node": "Call GPT",
+            "node": "Wait",
             "type": "main",
             "index": 0
           }
@@ -306,6 +332,17 @@
         [
           {
             "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Call GPT",
             "type": "main",
             "index": 0
           }

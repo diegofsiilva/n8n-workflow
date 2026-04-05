@@ -1,80 +1,56 @@
 # AI News Aggregator
 
-Sistema automatizado de curadoria e analise de noticias de Inteligencia Artificial, desenvolvido com n8n + GPT-4o.
-
----
+Sistema automatizado de curadoria e analise de noticias de Inteligencia Artificial, desenvolvido com n8n.
 
 ## Sobre o Projeto
 
-O **AI News Aggregator** e um workflow no n8n que roda automaticamente toda segunda-feira as 8h, coletando, filtrando e analisando as principais noticias de IA da semana. O sistema usa GPT-4o para gerar um relatorio completo em portugues, com destaques, tendencias, oportunidades para startups e analises de lacunas -- enviando tudo por **e-mail** e **Slack**.
-
----
+O **AI News Aggregator** e um workflow no n8n que coleta noticias de inteligencia artificial de 3 fontes RSS, filtra por relevancia, categoriza, remove duplicatas, gera um relatório analitico e envia por e-mail em formato HTML. O workflow pode ser executado manualmente ou agendado com trigger semanal toda segunda-feira as 8h.
 
 ## Fluxo do Workflow
 
 ```
-[Schedule Trigger - Toda Segunda 8h]
+[schedule trigger - toda segunda 8h / manual]
         |
         v
-[4 RSS Feeds: TechCrunch + VentureBeat AI + MIT Tech Review + O'Reilly Media]
+[3 RSS Feeds: TechCrunch + VentureBeat AI + MIT Tech Review]
         |
         v
-[Merge All Feeds]
+[Merge -> Remove Duplicates]
         |
         v
-[Remove Duplicates]
-        |
-        v
-[Filter & Categorize AI News - JavaScript]
+[Filter & Categorize AI News]
    - Filtra por 40+ palavras-chave de IA
    - Filtra noticias dos ultimos 7 dias
-   - Categoriza em 8 categorias
+   - Categoriza em 9 categorias
         |
         v
 [Aggregate & Count by Category]
    - Conta noticias por categoria
    - Gera estatisticas percentuais
-   - Constroi o prompt para o GPT
-        |
-        v
-[Call GPT-4o]
-   - Analise das noticias
-   - Destaques, tendencias, oportunidades, gaps
-        |
-        v
-[Merge GPT Result]
-   - Combina resposta do GPT com dados agregados
+   - Constroi o prompt para o LLM
         |
         v
 [Format HTML Newsletter]
    - Layout responsivo com inline styles
-   - Escapamento correto de HTML
    - Tabela de distribuicao + secoes por categoria
+   - Converte markdown do LLM para HTML
         |
         v
-[Email] + [Slack]
+[Send Email Newsletter]
 ```
-
----
 
 ## Funcionalidades
 
 | Funcionalidade | Descricao |
 |---|---|
-| 4 fontes RSS | TechCrunch, VentureBeat AI, MIT Tech Review, O'Reilly Media |
-| Filtro inteligente | 40+ palavras-chave de IA, filtragem dos ultimos 7 dias |
-| 8 categorias | IA Generativa, ML, Visao Computacional, Etica, Saude, Financas, Infraestrutura, Startups |
+| 3 fontes RSS | TechCrunch, VentureBeat AI, MIT Tech Review |
+| Filtro inteligente | 40+ palavras-chave de IA, noticias dos ultimos 7 dias |
+| 9 categorias | Generative AI, ML, Computer Vision, Etica, Saude, Financas, Infraestrutura, Startups, General AI |
 | Contagem automatica | Estatisticas por categoria com percentual |
-| Análise GPT-4o | Relatorio completo em portugues com insights reais |
-| Oportunidades | Identificacao de gaps para startups e projetos |
-| Sub-representados | Detecta topicos importantes ausentes na cobertura |
-| E-mail automatico | Newsletter HTML responsiva enviada para a lista da comunidade |
-| Slack | Resumo enviado ao canal automaticamente |
+| Relatorio analitico | Destaques, tendencias, oportunidades e topicos sub-representados |
+| E-mail automatico | Newsletter HTML responsiva |
 | Schedule | Trigger automatica toda segunda-feira as 8h |
-| HTML seguro | Escapamento de caracteres especiais em titulos e sumar ios |
 | Deduplicacao | Evita noticias repetidas entre as fontes |
-
----
 
 ## Categorias Monitoradas
 
@@ -86,31 +62,28 @@ O **AI News Aggregator** e um workflow no n8n que roda automaticamente toda segu
 6. **AI in Finance** - Detecao de fraudes, trading, fintechs
 7. **AI Infrastructure** - Chips, GPUs, edge computing
 8. **AI Startups & Business** - Funding, aquisoes, valuacoes
+9. **General AI** - Noticias de IA que nao se encaixam nas demais
 
----
-
-## Como Usar
+## Como Executar
 
 ### 1. Importar o Workflow
 
 1. Acesse sua instancia do n8n
-2. Clique em **"+"** > **"Import from file"**
+2. Clique em **"+"** > **"Import from File"**
 3. Selecione o arquivo `AI News Aggregator.json`
 
 ### 2. Configurar Credenciais
 
-No n8n, configure:
+No n8n, configure a credencial de **SMTP** para envio da newsletter (credencial chamada "SMTP account").
 
-- **OpenAI API Key** -> para o no GPT-4o (credencial chamada "OpenAI API")
-- **SMTP** -> para envio da newsletter (credencial chamada "SMTP account")
-- **Slack OAuth2** -> para notificacoes no canal (credencial chamada "Slack API")
+### 3. Executar
 
-### 3. Ativar o Workflow
+- **Manualmente**: Abra o workflow e clique em **"Test Workflow"** ou **"Execute Workflow"**
+- **Automaticamente**: Ative o toggle **"Active"** no canto superior direito. O workflow rodara automaticamente toda segunda-feira as 8h (cron `0 8 * * 1`)
 
-- Clique no toggle **"Active"** no canto superior direito
-- O workflow rodara automaticamente toda segunda as 8h
+### 4. Receber o Resultado
 
----
+A newsletter HTML sera enviada por e-mail para o endereco configurado no no **Send Email Newsletter** (campo `toEmail`).
 
 ## Estrutura do Repositorio
 
@@ -120,41 +93,13 @@ No n8n, configure:
 +-- README.md                 # Este arquivo
 ```
 
----
-
 ## Tecnologias
 
 - **n8n** - Automacao de workflow
-- **RSS Feed** - Coleta de noticias (TechCrunch, VentureBeat, MIT Tech Review, O'Reilly Media)
+- **RSS Feed** - Coleta de noticias (TechCrunch, VentureBeat, MIT Tech Review)
 - **JavaScript (Code node)** - Filtragem, categorizacao, deduplicacao e formatacao
-- **GPT-4o (OpenAI)** - Anali se e geracao do relatorio
 - **SMTP** - Envio de e-mail
-- **Slack API** - Notificacao no canal da comunidade
-
----
-
-## Exemplo de Saida
-
-```
-Destques da Semana
-- OpenAI lanca GPT-4.1 com capacidade de raciocinio estendida...
-- Meta open-sources Llama 3.2 Vision para aplicacoes multimodais...
-
-Tendencias Identificadas
-1. Crescimento de modelos multimodais open-source
-2. Regulamentacao de IA ganha forca na Europa e EUA
-3. Edge AI avanca em dispositivos moveis e IoT
-
-Oportunidades para Startups
-- Ferramentas de compliance para regulamentacao de IA
-- Plataformas de fine-tuning para modelos open-source
-
-Resumo: 38 noticias | IA Generativa: 12 (32%) | ML: 8 (21%) | Etica: 6 (16%) | ...
-```
-
----
 
 ## Autor
 
 Diego Figueiredo - desenvolvido para o processo seletivo do **Inteli Academy**.
-
